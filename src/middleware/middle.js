@@ -10,14 +10,19 @@ const authentication = async function (req, res, next) {
     if (!token) {
       return res.status(404).send({ status: false, message: "token must be present" })
     }
+    const decoded = jwt.decode(token);
+    if (!decoded) {
+      return res.status(400).send({ status: false, message: "Invalid authentication token in request headers." })
+    }
+    if (Date.now() > (decoded.exp) * 1000) {
+      return res.status(440).send({ status: false, message: "Session expired! Please login again." })
+    }
 
     let decodedToken = jwt.verify(token, "rahul_satyajit_mdsaifuddin_anul")
     if (!decodedToken) {
       return res.status(401).send({ status: false, message: "token is invalid" })
     }
-    if (Date.now() > (decodedToken.exp) * 1000) {
-      return res.status(440).send({ status: false, message: "Session expired! Please login again." })
-    }
+
     req.token = decodedToken
     next()
   } catch (error) {
@@ -28,7 +33,7 @@ const authentication = async function (req, res, next) {
 const authorization = async function (req, res, next) {
   try {
     let bookId = req.params.bookId
-    if(!mongoose.isValidObjectId(bookId)){
+    if (!mongoose.isValidObjectId(bookId)) {
       return res.status(400).send({ status: false, message: "invalid bookId" });
     }
     let findBook = await bookModel.findById(bookId);
@@ -43,13 +48,13 @@ const authorization = async function (req, res, next) {
     next()
   }
   catch (err) {
-    return res.status(500).send({ status:false, message: err.message })
+    return res.status(500).send({ status: false, message: err.message })
   }
 }
 const authorizationForCreateBook = async function (req, res, next) {
   try {
     let userId = req.body.userId
-    if(!mongoose.isValidObjectId(userId)){
+    if (!mongoose.isValidObjectId(userId)) {
       return res.status(400).send({ status: false, message: "invalid userId" });
     }
     if (req.token.userId != userId) {
@@ -59,7 +64,7 @@ const authorizationForCreateBook = async function (req, res, next) {
     next()
   }
   catch (err) {
-    return res.status(500).send({ status:false, message: err.message })
+    return res.status(500).send({ status: false, message: err.message })
   }
 }
 module.exports = { authentication, authorization, authorizationForCreateBook };

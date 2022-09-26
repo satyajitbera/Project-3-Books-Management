@@ -14,6 +14,7 @@ const isValidBody = function (value) {
     return false
 }
 
+
 const validReleaseDate = new RegExp(/^(18|19|20)[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/)
 //--------------------------------------------create Book--------------------------------------//
 const createBook = async function (req, res) {
@@ -101,54 +102,65 @@ const createBook = async function (req, res) {
 
 const getBooksByQuery = async function (req, res) {
     try {
-
         let data = req.query;
-        data.isDeleted = false;
 
+        if (Object.keys(data).length == 0) {
+            let result = await bookModel.find({ isDeleted: false }).select({ _id: 1, title: 1, excerpt: 1, userId: 1, category: 1, releasedAt: 1, reviews: 1 })
+
+            let resultData = result.sort((a, b) => a.title.localeCompare(b.title))
+
+            if (Object.keys(result).length == 0) {
+                return res.status(404).send({ status: false, message: "no document found" })
+            }
+            return res.status(200).send({ status: true, data: resultData });
+        }
+
+        const obj = {}
         let { userId, category, subcategory } = data
 
         if (userId) {
-            if (!userId) {
-                return res.status(400).send({ status: false, message: "please provide userID" })
-            }
+
             if (!mongoose.isValidObjectId(userId)) {
                 return res.status(400).send({ status: false, message: "You entered a invalid UserId" })
             }
             let check = await userModel.findById(userId)
+
             if (!check) {
                 return res.status(404).send({ status: false, message: "No such userId exists" });
             }
-            data.userId = userId
+            obj.userId = userId
         }
-
 
         if (category) {
-            if (!category) {
-                return res.status(400).send({ status: false, message: "please provide category" })
-            }
-            data.category = category
+            obj.category = category
         }
         if (subcategory) {
-            if (!subcategory) {
-                return res.status(400).send({ status: false, message: "please provide subcategory" })
-            }
-            data.subcategory = subcategory
+            obj.subcategory = subcategory
         }
+        const allbooks = { ...obj, isDeleted: false }
 
-
-        let savedData = await bookModel.find(data).select({ _id: 1, title: 1, excerpt: 1, userId: 1, category: 1, releasedAt: 1, reviews: 1 })
+        if (!(userId || category || subcategory)) {
+            console.log(userId)
+            return res.status(400).send({ satus: false, message: "query cant empty" })
+        }
+        let savedData = await bookModel.find(allbooks).select({ _id: 1, title: 1, excerpt: 1, userId: 1, category: 1, releasedAt: 1, reviews: 1 })
         let respondData = savedData.sort((a, b) => a.title.localeCompare(b.title))
-        if (savedData.length == 0) {
+        if (Object.keys(savedData).length == 0) {
             return res.status(404).send({ status: false, message: "no document found" })
         }
         else {
             return res.status(200).send({ status: true, data: respondData });
         }
     }
-    catch (err) {
-        return res.status(500).send({ status: false, message: err.message })
+    catch (error) {
+        res.status(500).send({ status: false, message: error.message })
     }
+
+
+
 }
+
+
 //-------------------------------------------get Book By BookId-----------------------//
 
 const getBookById = async function (req, res) {
@@ -282,3 +294,8 @@ const deleteBook = async function (req, res) {
 };
 
 module.exports = { createBook, getBooksByQuery, getBookById, updateBooks, deleteBook }
+
+
+
+
+

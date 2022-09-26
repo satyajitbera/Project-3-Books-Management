@@ -13,7 +13,7 @@ router.post("/books",middleware.authentication,middleware.authorizationForCreate
 
 router.get("/books",middleware.authentication, bookController.getBooksByQuery)
 
-router.get("/books/:bookId",middleware.authentication,/*middleware.authorization*/ bookController.getBookById)
+router.get("/books/:bookId",middleware.authentication,bookController.getBookById)
 
 router.put("/books/:bookId",middleware.authentication,middleware.authorization, bookController.updateBooks)
 

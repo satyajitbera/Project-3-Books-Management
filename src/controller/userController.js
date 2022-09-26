@@ -51,7 +51,7 @@ const createUser = async function (req, res) {
         if (!isValid(phone)) {
             return res.status(400).send({ status: false, message: "Please Provide Mobile" })
         }
-        if (!phone.match(mobileRegex)) {
+        if (!mobileRegex.test(phone)) {
             return res.status(400).send({ status: false, message: "Please Provide Valid Mobile" })
         }
 
@@ -137,10 +137,9 @@ let loginUser = async function (req, res) {
     }
 
     let date = Date.now();
-    // let createTime = Math.floor(date / 1000);
-    // let expTime = createTime + 120;
-    let createTime = Math.floor(Date.now() / 1000);
-    let expTime = createTime + (60 * 60)
+    let createTime = Math.floor(date / 1000);
+    let expTime = createTime + 60;
+    
 
 
     let token = jwt.sign(
