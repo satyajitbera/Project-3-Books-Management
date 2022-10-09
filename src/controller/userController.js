@@ -21,6 +21,7 @@ const cityRegex = new RegExp(/^[a-z\s]+$/i)
 //-------------------------------------------createUser------------------------------------------------//      
 const createUser = async function (req, res) {
     try {
+        //checking body validation
         let userData = req.body
         if (isValidBody(userData)) {
             return res.status(400).send({ status: false, message: "body cant be empty" })
